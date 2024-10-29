@@ -1,58 +1,55 @@
 #include <iostream>
-#include <string>
+#include <cstring>
+using namespace std;
 
-class RLECipher {
+class RLE {
 public:
-    std::string encode(const std::string& text) const {
-        std::string encodedText;
-        int n = text.size();
-        
-        for (int i = 0; i < n; i++) {
+    void encode(const char* input, char* encoded) {
+        int inputLen = strlen(input);
+        int index = 0;
+
+        for (int i = 0; i < inputLen; i++) {
             int count = 1;
-            while (i < n - 1 && text[i] == text[i + 1]) {
+            while (i < inputLen - 1 && input[i] == input[i + 1]) {
                 count++;
                 i++;
             }
-            encodedText += text[i];
-            encodedText += std::to_string(count);
+
+            encoded[index++] = input[i];
+            encoded[index++] = '0' + count; // Assuming count will be <= 9
         }
-        
-        return encodedText;
+        encoded[index] = '\0';
     }
 
-    std::string decode(const std::string& encodedText) const {
-        std::string decodedText;
-        int n = encodedText.size();
-        
-        for (int i = 0; i < n; i++) {
-            char ch = encodedText[i];
-            i++;
+    void decode(const char* encoded, char* decoded) {
+        int index = 0;
+        int decodedIndex = 0;
+        int len = strlen(encoded);
 
-            std::string countStr;
-            while (i < n && std::isdigit(encodedText[i])) {
-                countStr += encodedText[i];
-                i++;
+        for (int i = 0; i < len; i += 2) {
+            char ch = encoded[i];
+            int count = encoded[i + 1] - '0';
+
+            for (int j = 0; j < count; j++) {
+                decoded[decodedIndex++] = ch;
             }
-            i--; 
-            
-            int count = std::stoi(countStr);
-            decodedText.append(count, ch);
         }
-        
-        return decodedText;
+        decoded[decodedIndex] = '\0';
     }
 };
 
 int main() {
-    std::string text = "6666AAALLLL";
-    
-    RLECipher cipher;
+    char input[100], encoded[200], decoded[100];
+    RLE rle;
 
-    std::string encodedText = cipher.encode(text);
-    std::cout << "Encoded Text: " << encodedText << std::endl;
+    cout << "Enter a string to encode: ";
+    cin >> input;
 
-    std::string decodedText = cipher.decode(encodedText);
-    std::cout << "Decoded Text: " << decodedText << std::endl;
+    rle.encode(input, encoded);
+    cout << "Encoded string: " << encoded << endl;
+
+    rle.decode(encoded, decoded);
+    cout << "Decoded string: " << decoded << endl;
 
     return 0;
 }
