@@ -2,7 +2,8 @@
 using namespace std;
 
 int baj(int n, int m)
-{
+{   n=abs(n);
+    m=abs(m);
     if (n == 0)
         return m;
     return baj(m % n, n);
@@ -11,7 +12,7 @@ int baj(int n, int m)
 int bazm(int n, int m){
   if(n==0 || m==0)
     return 0;
-  return abs(n*m)/baj(n,m);
+  return abs((n/baj(n,m))*m);
 }
 
 int main(){
