@@ -17,11 +17,10 @@ struct HuffmanNode {
 
 struct Compare {
     bool operator()(HuffmanNode* a, HuffmanNode* b) {
-        // Сравниваем по частоте, а при равенстве — по символу
         if (a->frequency == b->frequency) {
-            return a->character > b->character; // Лексикографический порядок
+            return a->character > b->character; 
         }
-        return a->frequency > b->frequency; // Узел с меньшей частотой имеет больший приоритет
+        return a->frequency > b->frequency; 
     }
 };
 
@@ -49,7 +48,7 @@ HuffmanNode* buildHuffmanTree(const map<char, int>& frequencies) {
 void generateHuffmanCodes(HuffmanNode* root, const string& code, map<char, string>& huffmanCodes) {
     if (!root) return;
 
-    if (root->character != '\0') { // Листовой узел
+    if (root->character != '\0') {
         huffmanCodes[root->character] = code;
     }
 
