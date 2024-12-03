@@ -1,103 +1,82 @@
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
+using namespace std;
 
-class LZ77 {
-public:  
-    struct Token {
-        int offset;     
-        int length;     
-        char nextChar;  
+string lz77_compress(const string& input) {
+    string compressed;
+    int windowSize = 50; 
+    int inputLen = input.length();
 
-        Token(int o, int l, char c) : offset(o), length(l), nextChar(c) {}
-    };
+    for (int i = 0; i < inputLen;) {
+        int matchLength = 0;
+        int matchOffset = 0;
 
-private:
-    const int WINDOW_SIZE = 4096;    
-    const int LOOKAHEAD_SIZE = 16;   
+        for (int j = max(0, i - windowSize); j < i; ++j) {
+            int k = 0;
+            while (i + k < inputLen && input[j + k] == input[i + k])
+                ++k;
 
-Token findLongestMatch(const std::string& data, int currentPos) {
-        int maxLength = 0;
-        int bestOffset = 0;
-        int searchStart = std::max(0, currentPos - WINDOW_SIZE);
-        int lookaheadEnd = std::min(currentPos + LOOKAHEAD_SIZE, (int)data.length());
-
-        for (int i = searchStart; i < currentPos; i++) {
-            int currentLength = 0;
-            while ((currentPos + currentLength) < lookaheadEnd && 
-                   data[i + currentLength] == data[currentPos + currentLength] &&
-                   currentLength < LOOKAHEAD_SIZE) {
-                currentLength++;
-            }
-
-            if (currentLength > maxLength) {
-                maxLength = currentLength;
-                bestOffset = currentPos - i;
+            if (k > matchLength) {
+                matchLength = k;
+                matchOffset = i - j;
             }
         }
 
-        char nextChar = (currentPos + maxLength < data.length()) ? 
-                       data[currentPos + maxLength] : '\0';
-
-        return Token(bestOffset, maxLength, nextChar);
-    }
-
-public:
-    std::vector<Token> compress(const std::string& input) {
-        std::vector<Token> compressed;
-        int currentPos = 0;
-
-        while (currentPos < input.length()) {
-            Token token = findLongestMatch(input, currentPos);
-            compressed.push_back(token);
-            currentPos += token.length + 1;
+        if (matchLength > 2) {
+            compressed += "[" + to_string(matchOffset) + "|" + to_string(matchLength) + "]";
+            i += matchLength; 
         }
-
-        return compressed;
+        else {
+            compressed += input[i];
+            i++;
+        }
     }
+    return compressed;
+}
 
-    std::string decompress(const std::vector<Token>& compressed) {
-        std::string result;
+string lz77_decompress(const string& compressed) {
+    string decompressed;
+    int inputLen = compressed.length();
 
-        for (const Token& token : compressed) {
-            if (token.length > 0) {
-                int start = result.length() - token.offset;
-                for (int i = 0; i < token.length; i++) {
-                    result += result[start + i];
-                }
+    for (int i = 0; i < inputLen;) {
+        if (compressed[i] == '[') {
+            int offset = 0, length = 0;
+            i++;
+            while (compressed[i] != '|') {
+                offset = offset * 10 + (compressed[i] - '0');
+                i++;
             }
-            if (token.nextChar != '\0') {
-                result += token.nextChar;
+            i++; 
+            while (compressed[i] != ']') {
+                length = length * 10 + (compressed[i] - '0');
+                i++;
+            }
+            i++; 
+
+            
+            int start = decompressed.length() - offset;
+            for (int j = 0; j < length; j++) {
+                decompressed += decompressed[start + j];
             }
         }
-
-        return result;
-    }
-
-    void printCompressed(const std::vector<Token>& compressed) {
-        for (const Token& token : compressed) {
-            std::cout << "<" << token.offset << "," 
-                     << token.length << "," 
-                     << token.nextChar << "> ";
+        else {
+            decompressed += compressed[i];
+            i++;
         }
-        std::cout << std::endl;
     }
-};
+    return decompressed;
+}
 
 int main() {
-    LZ77 compressor;
-    std::string input = "The compression and the decompression leave an impression. Hahahahaha!";
-    
-    std::vector<LZ77::Token> compressed = compressor.compress(input);
-    
-    std::cout << "Compressed: ";
-    compressor.printCompressed(compressed);
-    
-    std::string decompressed = compressor.decompress(compressed);
-    
-    std::cout << "Original: " << input << std::endl;
-    std::cout << "Decompressed: " << decompressed << std::endl;
-    std::cout << "Successful: " << (input == decompressed ? "Yes" : "No") << std::endl;
-    
+    string input = "The compression and the decompression the leave an impression an. Hahahahaha!";
+    cout << "Original String:\n" << input << "\n\n";
+
+    string compressed = lz77_compress(input);
+    cout << "Compressed String:\n" << compressed << "\n\n";
+
+    string decompressed = lz77_decompress(compressed);
+    cout << "Decompressed String:\n" << decompressed << "\n";
+
     return 0;
 }
